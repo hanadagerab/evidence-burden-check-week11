@@ -1,0 +1,17 @@
+flowchart TD
+    A[Open public synthetic demo] --> B[Select actor and packaging case]
+    B --> C[Read simulated scale feed and provenance]
+    C --> D[Edit workload, documents and access constraints]
+    D --> E{Input valid?}
+    E -- No --> F[Inline error with correction guidance]
+    F --> D
+    E -- Yes --> G[Deterministic checks: evidence and burden]
+    G --> H[Run local ML risk suggestion]
+    H --> I[Display separated findings and model limits]
+    I --> J{Paper or uncertain evidence?}
+    J -- Yes --> K[Route to human review; do not reject]
+    J -- No --> L[Allow reviewer to confirm next steps]
+    K --> M[Reviewer selects action and reason]
+    L --> M
+    M --> N[Export synthetic JSON or CSV with provenance]
+    N --> O[Reset / compare another case]

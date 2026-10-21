@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph U[USER / ANALYST]
+      U1[Choose synthetic case] --> U2[Enter effort and evidence type]
+      U3[Read findings] --> U4[Choose review action]
+    end
+    subgraph S[SYSTEM / SIMULATED SENSOR]
+      S1[Generate labeled kg reading] --> S2[Validate and check records]
+      S3[Prepare export and evidence status]
+    end
+    subgraph AI[LOCAL ML]
+      A1[Predict burden-risk pattern from synthetic training] --> A2[Return advisory score and limitation]
+    end
+    subgraph R[HUMAN REVIEWER]
+      R1[Inspect uncertain / paper records] --> R2[Confirm outcome and reason]
+    end
+    U2 --> S1
+    S2 --> A1
+    A2 --> U3
+    U4 --> R1
+    R2 --> S3

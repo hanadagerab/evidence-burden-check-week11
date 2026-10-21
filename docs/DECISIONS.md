@@ -1,0 +1,90 @@
+# Evidence Burden Check — Decision Log
+
+## Project authority
+
+- Builder: Hana Dager Abascal
+- Team: 8
+- Role: USER
+- Chapter: 10 — Dreaming of Plenitude
+- Primary vacuum: EPR-COMPLIANCE
+- Assigned condition: 5 — Human Consequences
+- Source of truth: docs/PACKET.md and Team 8 Blueprint
+
+## D001 — Product scope
+
+Build a working packaging-evidence burden assessment.
+
+The application must identify beneficiaries, additional documentation
+work, financial burdens, exclusion barriers, and support needs.
+
+It must honor all six Blueprint conditions and the Shadow Clause.
+
+## D002 — Technology
+
+Use Next.js, TypeScript, Tailwind CSS, a simulated sensor feed,
+a genuinely trained synthetic ML model, and transparent support
+allocation logic.
+
+Use free tools and minimize dependencies.
+
+## D003 — Data and security
+
+Use synthetic data only.
+
+No authentication, database, personal records, or API keys
+are required for this demonstration.
+
+Validate inputs and protect exported CSV files.
+
+## D004 — Evidence integrity
+
+Simulated weight readings do not establish recycling.
+
+Documentation completeness does not establish legal compliance.
+
+ML suggestions do not establish real-world human harm.
+
+Paper records must remain eligible for human review.
+
+No informal collector may be automatically excluded.
+
+## D005 — Development process
+
+Use Mac Terminal exclusively.
+
+Preserve the completed packet before implementation.
+
+Make meaningful Git commits and verify each deployment.
+
+Document real bugs and actual persona feedback.
+
+## D006 — Planning asset preservation
+
+The original Markdown packet and PDF are preserved.
+
+Both Mermaid diagrams exist in the Markdown source.
+
+Referenced image assets require verification or extraction
+before the initial planning commit.
+
+## Next action
+
+Locate or extract the original visual assets, verify planning
+documentation, and create the first planning-only Git commit.
+
+## D007 — PDF visual recovery
+
+Recovered original PDF pages 3–5 as PNG images.
+
+Verified both standalone Mermaid files against the unchanged
+packet source.
+
+The original standalone mockup PNG and diagram SVGs were not
+available locally. PDF page renderings are preserved with
+explicit provenance rather than represented as original assets.
+
+## Next action
+
+Initialize the Next.js application after verifying this
+planning-only commit. Implement the three synthetic case
+presets and validated participant inputs first.
