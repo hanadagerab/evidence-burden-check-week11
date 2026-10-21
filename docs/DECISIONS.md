@@ -88,3 +88,43 @@ explicit provenance rather than represented as original assets.
 Initialize the Next.js application after verifying this
 planning-only commit. Implement the three synthetic case
 presets and validated participant inputs first.
+
+## D008 — Interactive foundation
+
+Implemented Next.js 16.4.2 with React, TypeScript,
+and Tailwind CSS.
+
+Three synthetic cases and bounded documentation
+inputs form the initial user journey.
+
+The workload estimate uses:
+
+monthlyHours = weeklyHours * 52 / 12
+
+The interface separates estimated documentation
+burdens from verified recovery, worker payment,
+and legal compliance.
+
+Four manual browser checks were confirmed by
+the builder on 2026-10-21.
+
+## D009 — Dependency review
+
+The production-only npm audit reported zero
+vulnerabilities at this checkpoint.
+
+The full dependency audit reported five high-severity
+findings in ESLint-related development dependencies.
+
+No forced downgrade was performed.
+The remaining advisories require continued review
+before final release.
+
+## Next action
+
+Implement a reproducible simulated packaging-scale
+feed with timestamps, weight units, source labels,
+and weight-discrepancy warnings.
+
+Verify the behavior through actual tests before
+the first Vercel deployment.
