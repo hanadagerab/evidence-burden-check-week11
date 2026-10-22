@@ -1,0 +1,203 @@
+import json
+from pathlib import Path
+
+import numpy as np
+import sklearn
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    confusion_matrix,
+    precision_score,
+    recall_score,
+)
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+ROOT = Path(__file__).resolve().parent.parent
+SEED = 1108
+MODEL_VERSION = "synthetic-burden-v1"
+
+FEATURES = [
+    "weeklyHours",
+    "extraCostMxn",
+    "missingFields",
+    "paperOnly",
+    "noDigitalAccess",
+    "weightConflict",
+]
+
+rng = np.random.default_rng(SEED)
+n = 600
+
+hours = rng.uniform(0, 40, n)
+costs = rng.uniform(0, 10000, n)
+missing = rng.integers(0, 11, n)
+paper = rng.integers(0, 2, n)
+no_access = rng.integers(0, 2, n)
+conflict = rng.integers(0, 2, n)
+
+X = np.column_stack([
+    hours, costs, missing, paper, no_access, conflict
+])
+
+# The synthetic target is an invented support-need assumption,
+# NOT a measurement of actual harm or worker capability.
+signal = (
+    -2.8
+    + 0.065 * hours
+    + 0.00013 * costs
+    + 0.19 * missing
+    + 0.75 * paper
+    + 0.65 * no_access
+    + 0.60 * conflict
+    + 0.45 * paper * no_access
+)
+
+synthetic_probability = 1 / (1 + np.exp(-signal))
+y = rng.binomial(1, synthetic_probability)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.25,
+    random_state=SEED,
+    stratify=y,
+)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+model = LogisticRegression(
+    max_iter=2000,
+    random_state=SEED,
+)
+
+model.fit(X_train_scaled, y_train)
+
+predictions = model.predict(X_test_scaled)
+
+# Transparent comparison: an invented, nonbinding checklist.
+baseline_predictions = (
+    (X_test[:, 0] >= 12)
+    | (X_test[:, 2] >= 4)
+    | ((X_test[:, 3] == 1) & (X_test[:, 4] == 1))
+    | (X_test[:, 5] == 1)
+).astype(int)
+
+def metrics(actual, predicted):
+    return {
+        "accuracy": round(float(accuracy_score(actual, predicted)), 4),
+        "balancedAccuracy": round(
+            float(balanced_accuracy_score(actual, predicted)), 4
+        ),
+        "precision": round(
+            float(precision_score(actual, predicted, zero_division=0)), 4
+        ),
+        "recall": round(
+            float(recall_score(actual, predicted, zero_division=0)), 4
+        ),
+        "confusionMatrix": confusion_matrix(
+            actual, predicted, labels=[0, 1]
+        ).tolist(),
+    }
+
+artifact = {
+    "version": MODEL_VERSION,
+    "trainingType": "scikit-learn LogisticRegression",
+    "trainingData": "SYNTHETIC ONLY",
+    "target": "Synthetic documentation-workflow support need",
+    "seed": SEED,
+    "datasetSize": n,
+    "trainingSize": len(X_train),
+    "holdoutSize": len(X_test),
+    "featureNames": FEATURES,
+    "mean": scaler.mean_.tolist(),
+    "scale": scaler.scale_.tolist(),
+    "coefficients": model.coef_[0].tolist(),
+    "intercept": float(model.intercept_[0]),
+    "threshold": 0.5,
+    "holdoutMetrics": metrics(y_test, predictions),
+    "baselineMetrics": metrics(y_test, baseline_predictions),
+    "limitations": [
+        "All training examples and targets are synthetic.",
+        "Labels are generated from assumptions chosen by the builder.",
+        "The score is not a validated probability of real-world harm.",
+        "The model must never determine eligibility or exclude workers.",
+        "Paper-based documentation always remains eligible for review.",
+        "Human review and deterministic safeguards take precedence.",
+    ],
+}
+
+destination = ROOT / "src/lib/model.json"
+destination.write_text(
+    json.dumps(artifact, indent=2) + "\n",
+    encoding="utf-8",
+)
+
+# Fixtures allow independent TypeScript/Python parity testing.
+fixtures = []
+
+for i in range(5):
+    values = X_test[i].tolist()
+    probability = float(
+        model.predict_proba(X_test_scaled[i:i+1])[0, 1]
+    )
+    fixtures.append({
+        "inputs": dict(zip(FEATURES, values)),
+        "expectedScore": probability,
+    })
+
+(ROOT / "ml/parity-fixtures.json").write_text(
+    json.dumps(fixtures, indent=2) + "\n",
+    encoding="utf-8",
+)
+
+report = {
+    "modelVersion": MODEL_VERSION,
+    "pythonVersionCompatible": "3.9",
+    "scikitLearnVersion": sklearn.__version__,
+    "datasetSize": n,
+    "trainingSize": len(X_train),
+    "holdoutSize": len(X_test),
+    "classDistribution": {
+        "noAdditionalSupport": int((y == 0).sum()),
+        "additionalSupport": int((y == 1).sum()),
+    },
+    "modelMetrics": artifact["holdoutMetrics"],
+    "baselineMetrics": artifact["baselineMetrics"],
+    "featureNames": FEATURES,
+    "syntheticLabelingAssumption": (
+        "An invented logistic signal with sampled labels. "
+        "No real participants or measured human outcomes."
+    ),
+    "interpretation": (
+        "The holdout measures generalization to invented cases "
+        "generated by the same assumptions, not field validity."
+    ),
+}
+
+(ROOT / "ml/training-report.json").write_text(
+    json.dumps(report, indent=2) + "\n",
+    encoding="utf-8",
+)
+
+print("MODEL TRAINING COMPLETE")
+print("Model version:", MODEL_VERSION)
+print("Dataset size:", n)
+print("Training samples:", len(X_train))
+print("Holdout samples:", len(X_test))
+print("Class distribution:", report["classDistribution"])
+print()
+print("LOGISTIC REGRESSION HOLDOUT:")
+print(json.dumps(report["modelMetrics"], indent=2))
+print()
+print("DETERMINISTIC BASELINE HOLDOUT:")
+print(json.dumps(report["baselineMetrics"], indent=2))
+print()
+print("Saved:", destination)
+print("Saved: ml/parity-fixtures.json")
+print("Saved: ml/training-report.json")
+print()
+print("WARNING: Synthetic scores are NOT validated human-impact estimates.")

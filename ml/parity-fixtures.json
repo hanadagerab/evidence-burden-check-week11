@@ -1,0 +1,57 @@
+[
+  {
+    "inputs": {
+      "weeklyHours": 12.66193025017564,
+      "extraCostMxn": 6684.649876443643,
+      "missingFields": 7.0,
+      "paperOnly": 0.0,
+      "noDigitalAccess": 1.0,
+      "weightConflict": 1.0
+    },
+    "expectedScore": 0.7802384065618673
+  },
+  {
+    "inputs": {
+      "weeklyHours": 28.526643894806966,
+      "extraCostMxn": 7859.191416829181,
+      "missingFields": 9.0,
+      "paperOnly": 1.0,
+      "noDigitalAccess": 1.0,
+      "weightConflict": 1.0
+    },
+    "expectedScore": 0.9757088436368994
+  },
+  {
+    "inputs": {
+      "weeklyHours": 36.60976323784587,
+      "extraCostMxn": 2730.976468362397,
+      "missingFields": 7.0,
+      "paperOnly": 0.0,
+      "noDigitalAccess": 0.0,
+      "weightConflict": 0.0
+    },
+    "expectedScore": 0.860254658434043
+  },
+  {
+    "inputs": {
+      "weeklyHours": 25.993796878543577,
+      "extraCostMxn": 8080.439030658284,
+      "missingFields": 9.0,
+      "paperOnly": 1.0,
+      "noDigitalAccess": 0.0,
+      "weightConflict": 0.0
+    },
+    "expectedScore": 0.9449115900333036
+  },
+  {
+    "inputs": {
+      "weeklyHours": 5.221159846631238,
+      "extraCostMxn": 9727.184455693976,
+      "missingFields": 7.0,
+      "paperOnly": 1.0,
+      "noDigitalAccess": 0.0,
+      "weightConflict": 0.0
+    },
+    "expectedScore": 0.7615567299488761
+  }
+]

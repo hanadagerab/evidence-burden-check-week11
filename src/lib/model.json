@@ -1,0 +1,84 @@
+{
+  "version": "synthetic-burden-v1",
+  "trainingType": "scikit-learn LogisticRegression",
+  "trainingData": "SYNTHETIC ONLY",
+  "target": "Synthetic documentation-workflow support need",
+  "seed": 1108,
+  "datasetSize": 600,
+  "trainingSize": 450,
+  "holdoutSize": 150,
+  "featureNames": [
+    "weeklyHours",
+    "extraCostMxn",
+    "missingFields",
+    "paperOnly",
+    "noDigitalAccess",
+    "weightConflict"
+  ],
+  "mean": [
+    19.878041462949586,
+    5030.792689851283,
+    4.973333333333334,
+    0.5111111111111111,
+    0.5333333333333333,
+    0.5066666666666667
+  ],
+  "scale": [
+    11.55450993288696,
+    2958.997443451367,
+    3.0961194349629912,
+    0.49987652796453513,
+    0.4988876515698604,
+    0.49995555358007304
+  ],
+  "coefficients": [
+    0.7637968389887877,
+    0.24751355876822978,
+    0.6896845015908762,
+    0.416654486067998,
+    0.018978044485061487,
+    0.33193810910724586
+  ],
+  "intercept": 1.2349963314753596,
+  "threshold": 0.5,
+  "holdoutMetrics": {
+    "accuracy": 0.7533,
+    "balancedAccuracy": 0.6323,
+    "precision": 0.784,
+    "recall": 0.9074,
+    "confusionMatrix": [
+      [
+        15,
+        27
+      ],
+      [
+        10,
+        98
+      ]
+    ]
+  },
+  "baselineMetrics": {
+    "accuracy": 0.74,
+    "balancedAccuracy": 0.5503,
+    "precision": 0.7413,
+    "recall": 0.9815,
+    "confusionMatrix": [
+      [
+        5,
+        37
+      ],
+      [
+        2,
+        106
+      ]
+    ]
+  },
+  "limitations": [
+    "All training examples and targets are synthetic.",
+    "Labels are generated from assumptions chosen by the builder.",
+    "The score is not a validated probability of real-world harm.",
+    "The model must never determine eligibility or exclude workers.",
+    "Paper-based documentation always remains eligible for review.",
+    "Human review and deterministic safeguards take precedence."
+  ]
+}

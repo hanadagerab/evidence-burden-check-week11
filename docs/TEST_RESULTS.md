@@ -60,3 +60,55 @@ No automated sensor regression tests have been run yet.
 The exact-threshold boundary case has not been confirmed.
 No real hardware or physical measurement was used.
 No material recovery, worker payment, or legal compliance was verified.
+
+## Milestone 3 — Synthetic machine learning and bug regression
+
+Date: October 21, 2026
+
+### Training evidence
+
+Model: synthetic-burden-v1
+
+- 600 synthetic examples
+- 450 training examples
+- 150 held-out examples
+- Six numeric/binary features
+- Fixed random seed: 1108
+- Logistic regression: scikit-learn 1.3.2
+
+Model holdout accuracy: 0.7533
+Model balanced accuracy: 0.6323
+Model precision: 0.7840
+Model recall: 0.9074
+
+Deterministic baseline accuracy: 0.7400
+Deterministic baseline balanced accuracy: 0.5503
+
+These metrics apply only to synthetic labels.
+
+### Automated tests
+
+- Five Python/TypeScript parity tests: PASS
+- Four additional ML behavior tests: PASS
+- Four numeric-input regression tests: PASS
+- Total: 13 PASS, 0 FAIL
+
+### Browser evidence
+
+Screenshots supplied by builder confirm:
+
+- PAPER-01 synthetic ML advisory: 36.1%
+- Increased-workload scenario: 92.1%
+- Paper-only zero-workload scenario: 18.0%
+- Model/rule disagreement displayed
+- Human-review safeguards remain visible
+- Empty numeric fields render without NaN
+- Invalid submission produces validation messages
+
+### Remaining limitations
+
+No field validation of ML predictive accuracy.
+No verified improvement in human outcomes.
+No real worker profiles used.
+Complete mobile, export and allocation testing pending.
+Fresh-session absence of React warnings not yet confirmed.

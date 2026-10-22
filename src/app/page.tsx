@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { safeNumericValue } from "@/lib/numeric-input";
+import { predictBurden, type MLAssessment } from "@/lib/ml";
 import {
   compareWeights,
   initialReceiptKg,
@@ -36,6 +38,7 @@ export default function Home() {
     paperReview: boolean;
     needsClarification: boolean;
     weightConflict: boolean;
+    ml: MLAssessment | null;
   } | null>(null);
 
   function selectCase(item: DemoCase) {
@@ -89,7 +92,23 @@ export default function Home() {
       return;
     }
 
+    let ml: MLAssessment | null = null;
+
+    try {
+      ml = predictBurden({
+        weeklyHours: selected.weeklyHours,
+        extraCostMxn: selected.extraCostMxn,
+        missingFields: selected.missingFields,
+        paperOnly: selected.evidenceFormat === "paper" ? 1 : 0,
+        noDigitalAccess: selected.digitalAccess === "no" ? 1 : 0,
+        weightConflict: comparison?.conflict ? 1 : 0,
+      });
+    } catch (error) {
+      console.error("Synthetic ML inference unavailable:", error);
+    }
+
     setAssessment({
+      ml,
       monthlyHours: calculateMonthlyHours(selected.weeklyHours),
       weightConflict: comparison?.conflict ?? false,
       paperReview: selected.evidenceFormat === "paper",
@@ -277,7 +296,7 @@ export default function Home() {
                   max="40"
                   step="0.5"
                   className={fieldClass}
-                  value={selected.weeklyHours}
+                  value={safeNumericValue(selected.weeklyHours)}
                   onChange={(e) =>
                     update("weeklyHours", e.target.valueAsNumber)
                   }
@@ -292,7 +311,7 @@ export default function Home() {
                   max="10000"
                   step="1"
                   className={fieldClass}
-                  value={selected.extraCostMxn}
+                  value={safeNumericValue(selected.extraCostMxn)}
                   onChange={(e) =>
                     update("extraCostMxn", e.target.valueAsNumber)
                   }
@@ -338,7 +357,7 @@ export default function Home() {
                   max="10"
                   step="1"
                   className={fieldClass}
-                  value={selected.missingFields}
+                  value={safeNumericValue(selected.missingFields)}
                   onChange={(e) =>
                     update("missingFields", e.target.valueAsNumber)
                   }
@@ -398,6 +417,69 @@ export default function Home() {
                     </p>
                   </div>
 
+                  <div className="rounded-xl border border-slate-200 p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h4 className="font-bold">
+                        ML documentation-support advisory
+                      </h4>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
+                        SYNTHETIC MODEL
+                      </span>
+                    </div>
+
+                    {assessment.ml ? (
+                      <div className="mt-4 space-y-3">
+                        <p className="text-3xl font-bold text-teal-900">
+                          {(assessment.ml.score * 100).toFixed(1)}%
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Synthetic model score — NOT a real-world probability
+                          of harm, exclusion, or recycling.
+                        </p>
+                        <p className="text-sm font-semibold">
+                          {assessment.ml.suggestedSupportNeed
+                            ? "Additional documentation assistance suggested"
+                            : "No additional assistance suggested by ML"}
+                        </p>
+
+                        <div className="text-sm leading-relaxed text-slate-700">
+                          <p className="font-semibold">Model inputs:</p>
+                          <p>Weekly hours: {selected.weeklyHours}</p>
+                          <p>Monthly cost: MXN {selected.extraCostMxn}</p>
+                          <p>Missing fields: {selected.missingFields}</p>
+                          <p>Paper only: {selected.evidenceFormat === "paper" ? "Yes" : "No"}</p>
+                          <p>No digital access: {selected.digitalAccess === "no" ? "Yes" : "No"}</p>
+                          <p>Weight conflict: {assessment.weightConflict ? "Yes" : "No"}</p>
+                        </div>
+
+                        <p className="text-xs text-slate-500">
+                          Model: {assessment.ml.modelVersion}.
+                          Trained on 600 synthetic examples; evaluated on
+                          150 held-out synthetic examples.
+                        </p>
+                        <p className="text-sm text-slate-700">
+                          {assessment.ml.limitation}
+                        </p>
+
+                        {assessment.ml.suggestedSupportNeed !==
+                          (assessment.paperReview ||
+                           assessment.needsClarification ||
+                           assessment.weightConflict ||
+                           selected.digitalAccess === "no") && (
+                          <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
+                            MODEL / RULE DISAGREEMENT — HUMAN REVIEW.
+                            Deterministic safeguards take precedence.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p role="status" className="mt-3 text-sm text-amber-900">
+                        ML unavailable. Deterministic checks still work.
+                        Human review remains available.
+                      </p>
+                    )}
+                  </div>
+
                   {assessment.weightConflict && (
                     <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">
                       <strong>WEIGHT CONFLICT — HUMAN REVIEW.</strong>
@@ -431,7 +513,7 @@ export default function Home() {
                 <p>Material recovery: NOT VERIFIED.</p>
                 <p>Worker payment: NOT VERIFIED.</p>
                 <p>Legal compliance: NOT ASSESSED.</p>
-                <p>ML assessment: NOT YET IMPLEMENTED.</p>
+                <p>ML assessment: SYNTHETIC ADVISORY ONLY; NOT REAL-WORLD VALIDATED.</p>
                 <p>Scale feed: SIMULATED OBSERVATIONS ONLY.</p>
               </div>
             </div>

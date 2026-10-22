@@ -188,3 +188,41 @@ documented holdout testing, and actual TypeScript
 inference from the exported model artifact.
 
 Preserve deterministic guardrails and human review.
+
+## D012 — Genuine synthetic-trained ML
+
+Trained scikit-learn logistic regression using 600
+reproducible synthetic cases.
+
+The model artifact contains learned coefficients,
+normalization parameters, model version and holdout metrics.
+
+Actual TypeScript inference was verified against
+five Python-generated fixtures.
+
+The model is advisory only and cannot deny eligibility.
+
+Synthetic holdout performance is not external validation.
+
+## D013 — BUG-001 correction
+
+Observed actual React NaN input-value errors.
+
+Implemented safeNumericValue() for documentation inputs.
+
+The builder provided Safari evidence of successful
+validation when all three numeric fields were empty.
+
+Thirteen automated regression tests passed.
+
+Production retest and deployment reference remain pending.
+
+## Next action
+
+Commit the verified ML and numeric-input improvements.
+
+Implement transparent support allocation, reviewer actions,
+and JSON/CSV exports.
+
+Perform the required security and mechanical testing,
+then redeploy and verify the corrected application.
