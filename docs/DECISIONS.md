@@ -128,3 +128,37 @@ and weight-discrepancy warnings.
 
 Verify the behavior through actual tests before
 the first Vercel deployment.
+
+## D010 — Simulated sensing
+
+Implemented a deterministic synthetic packaging-scale feed.
+
+Every reading includes a synthetic reading identifier,
+device identifier, kg value, timestamp, SIMULATED source,
+and illustrative measurement uncertainty.
+
+The three demo cases use repeatable sensor sequences.
+
+The system preserves the sensor observation separately
+from the synthetic receipt weight.
+
+A discrepancy warning appears when:
+
+abs(sensorKg - receiptKg) > max(5, receiptKg * 0.05)
+
+This is an invented prototype threshold, not an
+environmental, measurement, or legal standard.
+
+All five instructed sensing browser interactions were
+confirmed as passing by the builder.
+
+No recycling, payment, or compliance claim follows from
+a simulated weight observation.
+
+## Next action
+
+Deploy the first functional application slice to Vercel.
+
+Verify the production URL, record the deployment and
+commit reference, and then implement the synthetic-trained
+ML component with actual inference and tests.

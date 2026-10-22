@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import {
+  compareWeights,
+  initialReceiptKg,
+  simulatedReading,
+} from "@/lib/sensor";
+import {
   calculateMonthlyHours,
   demoCases,
   type DemoCase,
@@ -12,20 +17,43 @@ import {
 export default function Home() {
   const [selected, setSelected] = useState<DemoCase>({ ...demoCases[0] });
   const [errors, setErrors] = useState<string[]>([]);
+  const [sequence, setSequence] = useState(0);
+  const [receiptKg, setReceiptKg] = useState<number>(
+    initialReceiptKg(demoCases[0].id)
+  );
+
+  const reading = simulatedReading(selected.id, sequence);
+  const validReceipt =
+    Number.isFinite(receiptKg) &&
+    receiptKg >= 0 &&
+    receiptKg <= 20000;
+
+  const comparison = validReceipt
+    ? compareWeights(reading.kg, receiptKg)
+    : null;
   const [assessment, setAssessment] = useState<{
     monthlyHours: number;
     paperReview: boolean;
     needsClarification: boolean;
+    weightConflict: boolean;
   } | null>(null);
 
   function selectCase(item: DemoCase) {
     setSelected({ ...item });
+    setSequence(0);
+    setReceiptKg(initialReceiptKg(item.id));
     setAssessment(null);
     setErrors([]);
   }
 
   function update<K extends keyof DemoCase>(key: K, value: DemoCase[K]) {
     setSelected((previous) => ({ ...previous, [key]: value }));
+    setAssessment(null);
+    setErrors([]);
+  }
+
+  function replaySensor() {
+    setSequence((previous) => previous + 1);
     setAssessment(null);
     setErrors([]);
   }
@@ -48,6 +76,12 @@ export default function Home() {
       nextErrors.push("Missing fields must be a whole number between 0 and 10.");
     }
 
+    if (!validReceipt) {
+      nextErrors.push(
+        "Receipt weight must be between 0 and 20,000 kg."
+      );
+    }
+
     setErrors(nextErrors);
 
     if (nextErrors.length > 0) {
@@ -57,6 +91,7 @@ export default function Home() {
 
     setAssessment({
       monthlyHours: calculateMonthlyHours(selected.weeklyHours),
+      weightConflict: comparison?.conflict ?? false,
       paperReview: selected.evidenceFormat === "paper",
       needsClarification: selected.missingFields > 0 ||
         selected.evidenceFormat === "none",
@@ -138,9 +173,97 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-xl font-bold">
+                02 / Simulated scale observation
+              </h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Repeatable synthetic sensor samples. No physical device connected.
+              </p>
+            </div>
+            <span className="rounded-full bg-amber-100 px-3 py-2 text-xs font-bold text-amber-900">
+              SIMULATED · NOT LIVE
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
+            <div className="rounded-xl bg-slate-50 p-5">
+              <p className="text-sm text-slate-500">Scale observation</p>
+              <p className="mt-2 text-3xl font-bold">
+                {reading.kg.toFixed(1)} kg
+              </p>
+              <p className="mt-2 text-xs text-slate-600">
+                Illustrative uncertainty: ±{reading.uncertaintyKg} kg
+              </p>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <p><strong>Source:</strong> {reading.source}</p>
+              <p><strong>Device:</strong> {reading.deviceId}</p>
+              <p><strong>Reading:</strong> {reading.readingId}</p>
+              <p><strong>Example time:</strong> {reading.timestamp}</p>
+            </div>
+
+            <div>
+              <label htmlFor="receipt-weight" className="text-sm font-medium">
+                Synthetic receipt weight (kg)
+              </label>
+              <input
+                id="receipt-weight"
+                type="number"
+                min="0"
+                max="20000"
+                step="0.1"
+                className={fieldClass + " mt-2"}
+                value={Number.isNaN(receiptKg) ? "" : receiptKg}
+                onChange={(event) => {
+                  setReceiptKg(event.target.valueAsNumber);
+                  setAssessment(null);
+                  setErrors([]);
+                }}
+              />
+              <button
+                type="button"
+                onClick={replaySensor}
+                className="mt-3 w-full rounded-xl border border-teal-700 px-4 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50"
+              >
+                Replay next simulated sample
+              </button>
+            </div>
+          </div>
+
+          {comparison && (
+            <div
+              role="status"
+              className={`mt-5 rounded-xl p-4 text-sm ${
+                comparison.conflict
+                  ? "bg-amber-50 text-amber-950"
+                  : "bg-teal-50 text-teal-950"
+              }`}
+            >
+              <strong>
+                {comparison.conflict
+                  ? "RECONCILIATION NEEDED"
+                  : "No discrepancy above demo threshold"}
+              </strong>
+              <p className="mt-1">
+                Difference: {comparison.differenceKg.toFixed(1)} kg.
+                Demo-only warning threshold:{" "}
+                {comparison.thresholdKg.toFixed(1)} kg.
+              </p>
+              <p className="mt-2">
+                Scale observation only: material recovery has not
+                been verified. A discrepancy is not evidence of fraud.
+              </p>
+            </div>
+          )}
+        </section>
+
         <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-xl font-bold">02 / Documentation workload</h3>
+            <h3 className="text-xl font-bold">03 / Documentation workload</h3>
             <p className="mt-2 text-sm text-slate-500">
               Edit the synthetic inputs and run a transparent assessment.
             </p>
@@ -242,7 +365,7 @@ export default function Home() {
 
           <div className="space-y-5">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-bold">03 / Assessment</h3>
+              <h3 className="text-xl font-bold">04 / Assessment</h3>
 
               {!assessment ? (
                 <div className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-sm leading-relaxed text-slate-500">
@@ -275,6 +398,14 @@ export default function Home() {
                     </p>
                   </div>
 
+                  {assessment.weightConflict && (
+                    <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">
+                      <strong>WEIGHT CONFLICT — HUMAN REVIEW.</strong>
+                      {" "}Preserve the simulated observation and
+                      synthetic receipt value for reconciliation.
+                    </div>
+                  )}
+
                   {assessment.paperReview && (
                     <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
                       <strong>NEEDS HUMAN REVIEW.</strong>
@@ -301,7 +432,7 @@ export default function Home() {
                 <p>Worker payment: NOT VERIFIED.</p>
                 <p>Legal compliance: NOT ASSESSED.</p>
                 <p>ML assessment: NOT YET IMPLEMENTED.</p>
-                <p>Scale feed: NOT YET IMPLEMENTED.</p>
+                <p>Scale feed: SIMULATED OBSERVATIONS ONLY.</p>
               </div>
             </div>
           </div>
