@@ -74,3 +74,18 @@ Not yet performed.
 Required: additional functional capabilities,
 documented real bug correction, successful redeployment,
 and verification.
+
+
+## Deployment B — October 22, 2026
+
+- Deployment ID: `dpl_Gi1AoBy2QDcVzSDwFk1KhTmUHULL`
+- Environment: Production
+- Status: Ready
+- Production URL: https://evidence-burden-check-week11.vercel.app/
+- Release commit: `7d08e3f`
+- Source workflow: GitHub-connected production deployment; manual CLI attempt returned `Not authorized`.
+- Verification: Vercel inspection confirmed the production alias resolves to this deployment.
+- Public HTTP response: 200.
+- Browser: Builder confirmed the live application works.
+- Scope: sensing, ML advisory, support allocation, human review, and assessment exports.
+- Note: The deployment inspection did not independently display its Git SHA; functionality was verified on the production alias.

@@ -86,3 +86,16 @@ PENDING.
 ### Redeployment reference
 
 PENDING.
+
+
+## BUG-001 — Production follow-up
+
+- Original defect: Clearing a numeric input could produce `NaN`.
+- Fix commit: `ea9be4a`.
+- Fix: Render nonfinite numeric values as empty strings and preserve input validation.
+- Automated regression tests: Passed.
+- Local browser regression: Passed.
+- Production deployment: `dpl_Gi1AoBy2QDcVzSDwFk1KhTmUHULL`.
+- Production status: Live application confirmed working by builder.
+- Explicit production blank-input regression: Not separately documented in the latest confirmation.
+- Status: FIX VERIFIED LOCALLY; PRODUCTION REGRESSION CONFIRMATION PENDING.
