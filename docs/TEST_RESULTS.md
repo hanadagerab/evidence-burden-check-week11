@@ -112,3 +112,35 @@ No verified improvement in human outcomes.
 No real worker profiles used.
 Complete mobile, export and allocation testing pending.
 Fresh-session absence of React warnings not yet confirmed.
+
+## Milestone 4 — Support allocation, review and exports
+
+Reported manual browser tests:
+
+- Four support-allocation interactions: PASS.
+- Four human-review interactions: PASS.
+- Four JSON/CSV export interactions: PASS.
+
+Downloaded-file inspection:
+
+- Draft JSON: PASS.
+- Recorded-review JSON: PASS.
+- Recorded-review CSV: PASS.
+
+Actual file inspection verified synthetic provenance,
+model version, support route, review status and
+unverified recovery/payment/compliance labels.
+
+Automated regression suite:
+39 tests passed, 0 failed, October 22, 2026.
+
+TypeScript: PASS.
+ESLint: PASS.
+Production build: PASS.
+
+Still pending:
+
+- Final mobile browser verification.
+- Full accessibility verification.
+- Deployment B and live production interaction checks.
+- Persona usability test and before/after correction.

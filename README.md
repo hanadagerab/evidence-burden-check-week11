@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Evidence Burden Check
 
-## Getting Started
+Week 11 Business Bending — Team 8
+Role: USER
+Chapter 10: Dreaming of Plenitude
+Assigned condition: Human Consequences
 
-First, run the development server:
+## What this application does
 
-```bash
+Evidence Burden Check is a synthetic packaging-documentation
+research prototype.
+
+It explores who benefits from packaging reporting, who
+performs additional administrative work, and who risks
+exclusion because of documentation or digital barriers.
+
+It does not certify recycling, worker payment,
+environmental outcomes, or legal EPR compliance.
+
+## Features
+
+- Three synthetic packaging participant cases
+- Editable documentation workload and cost inputs
+- Reproducible simulated scale feed
+- Receipt weight discrepancy checks
+- Trained logistic-regression support-need advisory
+- Transparent support matching and simulated capacity
+- Human-review decisions with required explanations
+- JSON and CSV assessment downloads
+- Paper-friendly review and explicit evidence uncertainty
+
+## DRAGON STACK
+
+### Sensing
+
+Simulated packaging-scale readings with timestamps,
+units, reading IDs and provenance.
+
+### Machine learning
+
+Scikit-learn logistic regression trained on 600 synthetic
+examples, using a fixed seed.
+
+450 training examples and 150 held-out examples.
+
+Inference runs in TypeScript using exported learned
+coefficients and preprocessing values.
+
+The model is not validated on real-world observations.
+
+### Marketplace logic
+
+Deterministic matching to three fictional support routes:
+
+- Assisted paper review
+- Supplier clarification
+- Human exception review
+
+Capacity is simulated and no service is actually booked.
+
+## Local development
+
+Requires Node.js and npm.
+
+Run:
+
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tests
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Run:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+node --test tests/*.test.ts
 
-## Learn More
+npm run lint
+npx tsc --noEmit
+npm run build
 
-To learn more about Next.js, take a look at the following resources:
+## Training
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The training script is `ml/train.py`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Training requires a compatible Python environment
+with NumPy, SciPy and scikit-learn.
 
-## Deploy on Vercel
+The exported model is stored in `src/lib/model.json`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The website does not require Python at runtime.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+https://evidence-burden-check-week11.vercel.app/
+
+Deployment evidence is documented in
+`docs/DEPLOY_LOG.md`.
+
+## Evidence and limitations
+
+All scenarios are fictional.
+
+The model score represents a learned synthetic pattern,
+not an established probability of human harm.
+
+Paper records are never automatically excluded.
+
+Human review is required for unresolved evidence.
+
+See `docs/PACKET.md`, `docs/SECURITY.md`,
+`docs/TEST_PLAN.md` and `docs/BUG_LOG.md`.

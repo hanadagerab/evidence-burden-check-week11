@@ -226,3 +226,28 @@ and JSON/CSV exports.
 
 Perform the required security and mechanical testing,
 then redeploy and verify the corrected application.
+
+## D014 — Complete synthetic review workflow
+
+Implemented support allocation with transparent priorities,
+simulated capacity and no automated exclusion.
+
+Added validated human-review actions and explanations.
+
+Added local JSON/CSV downloads preserving the assessment,
+sensor, model, support decision and evidence limitations.
+
+Thirty-nine automated tests passed.
+
+The builder confirmed browser review and export flows.
+Three actual downloaded files passed content inspection.
+
+## Next action
+
+Commit and push the complete user journey.
+
+Deploy production version B, verify accessibility and
+key interactive behaviors, then document the deployment
+against BUG-001.
+
+Complete mobile testing and the synthetic persona cycle.

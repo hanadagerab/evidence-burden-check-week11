@@ -1,7 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { safeNumericValue } from "@/lib/numeric-input";
+import {
+  EVIDENCE_DISCLAIMER,
+  exportJSON,
+  exportCSV,
+  type AssessmentExport,
+} from "@/lib/export";
+import {
+  allocateSupport,
+  supportOptions,
+  type SupportRoute,
+} from "@/lib/support";
+import {
+  validateReview,
+  type ReviewAction,
+} from "@/lib/review";
 import { predictBurden, type MLAssessment } from "@/lib/ml";
 import {
   compareWeights,
@@ -19,6 +34,17 @@ import {
 export default function Home() {
   const [selected, setSelected] = useState<DemoCase>({ ...demoCases[0] });
   const [errors, setErrors] = useState<string[]>([]);
+  const [reviewAction, setReviewAction] =
+    useState<ReviewAction>("unresolved");
+  const [reviewRoute, setReviewRoute] =
+    useState<SupportRoute>("ASSIST_PAPER");
+  const [reviewReason, setReviewReason] = useState("");
+  const [reviewErrors, setReviewErrors] = useState<string[]>([]);
+  const [reviewDecision, setReviewDecision] = useState<{
+    action: ReviewAction;
+    route: SupportRoute;
+    reason: string;
+  } | null>(null);
   const [sequence, setSequence] = useState(0);
   const [receiptKg, setReceiptKg] = useState<number>(
     initialReceiptKg(demoCases[0].id)
@@ -39,6 +65,7 @@ export default function Home() {
     needsClarification: boolean;
     weightConflict: boolean;
     ml: MLAssessment | null;
+    support: ReturnType<typeof allocateSupport>;
   } | null>(null);
 
   function selectCase(item: DemoCase) {
@@ -46,18 +73,24 @@ export default function Home() {
     setSequence(0);
     setReceiptKg(initialReceiptKg(item.id));
     setAssessment(null);
+    setReviewDecision(null);
+    setReviewErrors([]);
     setErrors([]);
   }
 
   function update<K extends keyof DemoCase>(key: K, value: DemoCase[K]) {
     setSelected((previous) => ({ ...previous, [key]: value }));
     setAssessment(null);
+    setReviewDecision(null);
+    setReviewErrors([]);
     setErrors([]);
   }
 
   function replaySensor() {
     setSequence((previous) => previous + 1);
     setAssessment(null);
+    setReviewDecision(null);
+    setReviewErrors([]);
     setErrors([]);
   }
 
@@ -89,6 +122,8 @@ export default function Home() {
 
     if (nextErrors.length > 0) {
       setAssessment(null);
+    setReviewDecision(null);
+    setReviewErrors([]);
       return;
     }
 
@@ -107,7 +142,22 @@ export default function Home() {
       console.error("Synthetic ML inference unavailable:", error);
     }
 
+    const support = allocateSupport({
+      evidenceFormat: selected.evidenceFormat,
+      digitalAccess: selected.digitalAccess,
+      missingFields: selected.missingFields,
+      weightConflict: comparison?.conflict ?? false,
+      weeklyHours: selected.weeklyHours,
+    });
+
+    setReviewAction("unresolved");
+    setReviewRoute(support.recommendedRoute);
+    setReviewReason("");
+    setReviewDecision(null);
+    setReviewErrors([]);
+
     setAssessment({
+      support,
       ml,
       monthlyHours: calculateMonthlyHours(selected.weeklyHours),
       weightConflict: comparison?.conflict ?? false,
@@ -116,6 +166,131 @@ export default function Home() {
         selected.evidenceFormat === "none",
     });
   }
+
+  function saveReview() {
+    if (!assessment) return;
+
+    const errors = validateReview({
+      action: reviewAction,
+      route: reviewRoute,
+      reason: reviewReason,
+      evidenceFormat: selected.evidenceFormat,
+      missingFields: selected.missingFields,
+      weightConflict: assessment.weightConflict,
+    });
+
+    setReviewErrors(errors);
+    setReviewDecision(null);
+
+    if (errors.length > 0) return;
+
+    setReviewDecision({
+      action: reviewAction,
+      route: reviewRoute,
+      reason: reviewReason.trim(),
+    });
+  }
+
+  const downloadAssessment = useCallback((format: "json" | "csv") => {
+    if (!assessment || !comparison || !validReceipt) {
+      return;
+    }
+
+    const recorded = reviewDecision !== null;
+
+    const documentationStatus = assessment.paperReview
+      ? "PAPER_REVIEW"
+      : assessment.weightConflict
+        ? "CONFLICTING"
+        : assessment.needsClarification
+          ? "MISSING"
+          : "COMPLETE_DEMO";
+
+    const data: AssessmentExport = {
+      assessmentId: `DEMO-${selected.id}-${Date.now()}`,
+      assessmentTimestamp: new Date().toISOString(),
+      scenarioId: selected.id,
+      source: "SYNTHETIC_DEMO",
+      actorType: selected.actor,
+
+      weeklyHours: selected.weeklyHours,
+      monthlyHours: assessment.monthlyHours,
+      extraCostMxn: selected.extraCostMxn,
+      missingFields: selected.missingFields,
+      evidenceFormat: selected.evidenceFormat,
+      digitalAccess: selected.digitalAccess,
+
+      sensorReadingId: reading.readingId,
+      sensorDeviceId: reading.deviceId,
+      sensorSource: "SIMULATED",
+      sensorTimestamp: reading.timestamp,
+      sensorKg: reading.kg,
+      sensorUncertaintyKg: reading.uncertaintyKg,
+      receiptKg,
+      weightDifferenceKg: comparison.differenceKg,
+      weightConflict: assessment.weightConflict,
+
+      modelVersion: assessment.ml?.modelVersion ?? "UNAVAILABLE",
+      mlScore: assessment.ml?.score ?? null,
+      mlInterpretation:
+        assessment.ml?.limitation ??
+        "Model unavailable; human review remains required.",
+
+      paperReviewRequired: assessment.paperReview,
+      documentationStatus,
+      recoveryStatus: "NOT_VERIFIED",
+      workerPaymentStatus: "NOT_VERIFIED",
+      legalComplianceStatus: "NOT_ASSESSED",
+
+      recommendedSupportRoute: assessment.support.recommendedRoute,
+      supportPriority: assessment.support.priority,
+      supportCapacityStatus: assessment.support.status,
+      supportSource: "SIMULATED_CAPACITY",
+
+      reviewAction: recorded ? reviewDecision.action : null,
+      reviewRoute: recorded ? reviewDecision.route : null,
+      reviewReason: recorded ? reviewDecision.reason : null,
+      exportStatus: recorded ? "REVIEW_RECORDED" : "DRAFT",
+
+      disclaimer: EVIDENCE_DISCLAIMER,
+    };
+
+    try {
+      const contents =
+        format === "json" ? exportJSON(data) : exportCSV(data);
+
+      const blob = new Blob([contents], {
+        type: format === "json"
+          ? "application/json;charset=utf-8"
+          : "text/csv;charset=utf-8",
+      });
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+
+      anchor.href = url;
+      anchor.download = `evidence-burden-${selected.id.toLowerCase()}.${format}`;
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error("Assessment export failed:", error);
+      window.alert(
+        "Export could not be generated. Check the assessment and try again."
+      );
+    }
+  }, [
+    assessment,
+    comparison,
+    validReceipt,
+    reviewDecision,
+    selected,
+    reading,
+    receiptKg,
+  ]);
 
   const fieldClass =
     "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
@@ -240,6 +415,8 @@ export default function Home() {
                 onChange={(event) => {
                   setReceiptKg(event.target.valueAsNumber);
                   setAssessment(null);
+    setReviewDecision(null);
+    setReviewErrors([]);
                   setErrors([]);
                 }}
               />
@@ -480,6 +657,57 @@ export default function Home() {
                     )}
                   </div>
 
+                  <div className="rounded-xl border border-teal-200 bg-teal-50 p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h4 className="font-bold text-teal-950">
+                        Suggested documentation support
+                      </h4>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-teal-900">
+                        PRIORITY {assessment.support.priority}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-lg font-bold text-teal-950">
+                      {assessment.support.name}
+                    </p>
+
+                    <p className="mt-2 text-sm leading-relaxed text-teal-900">
+                      {assessment.support.explanation}
+                    </p>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-lg bg-white p-3">
+                        <p className="text-xs text-slate-500">
+                          Simulated review time
+                        </p>
+                        <p className="text-lg font-bold">
+                          {assessment.support.estimatedMinutes} minutes
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-3">
+                        <p className="text-xs text-slate-500">
+                          Simulated capacity
+                        </p>
+                        <p className="text-lg font-bold">
+                          {assessment.support.availableSlots} slots
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-sm font-semibold text-teal-950">
+                      {assessment.support.status === "SLOT_AVAILABLE"
+                        ? "SIMULATED SLOT AVAILABLE"
+                        : "WAITING FOR SIMULATED CAPACITY"}
+                    </p>
+
+                    <p className="mt-2 text-xs leading-relaxed text-teal-800">
+                      {assessment.support.disclaimer}
+                      {" "}A human reviewer must determine the next action.
+                      No case is automatically rejected.
+                    </p>
+                  </div>
+
                   {assessment.weightConflict && (
                     <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-950">
                       <strong>WEIGHT CONFLICT — HUMAN REVIEW.</strong>
@@ -519,6 +747,154 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {assessment && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-xl font-bold">
+              05 / Human review and support decision
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Review the evidence and record a human decision.
+              Suggested capacity is simulated; no real support is booked.
+            </p>
+
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <label className="space-y-2 text-sm font-medium">
+                <span>Review action</span>
+                <select
+                  className={fieldClass}
+                  value={reviewAction}
+                  onChange={(event) => {
+                    setReviewAction(event.target.value as ReviewAction);
+                    setReviewDecision(null);
+                  }}
+                >
+                  <option value="unresolved">Leave unresolved</option>
+                  <option value="request-paper-review">
+                    Request assisted paper review
+                  </option>
+                  <option value="request-clarification">
+                    Request clarification
+                  </option>
+                  <option value="document-complete">
+                    Confirm demo documentation completeness
+                  </option>
+                </select>
+              </label>
+
+              <label className="space-y-2 text-sm font-medium">
+                <span>Support route</span>
+                <select
+                  className={fieldClass}
+                  value={reviewRoute}
+                  onChange={(event) => {
+                    setReviewRoute(event.target.value as SupportRoute);
+                    setReviewDecision(null);
+                  }}
+                >
+                  {supportOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="mt-5 block space-y-2 text-sm font-medium">
+              <span>Reason for review decision (10–280 characters)</span>
+              <textarea
+                className={fieldClass}
+                rows={3}
+                maxLength={280}
+                value={reviewReason}
+                onChange={(event) => {
+                  setReviewReason(event.target.value);
+                  setReviewDecision(null);
+                }}
+                placeholder="Explain the evidence and why this action is appropriate."
+              />
+            </label>
+
+            {reviewErrors.length > 0 && (
+              <div role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-800">
+                {reviewErrors.map((error) => (
+                  <p key={error}>{error}</p>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={saveReview}
+              className="mt-5 rounded-xl bg-teal-800 px-6 py-3 font-semibold text-white hover:bg-teal-900"
+            >
+              Record human review decision
+            </button>
+
+            {reviewDecision && (
+              <div role="status" className="mt-5 rounded-xl border border-teal-200 bg-teal-50 p-5">
+                <p className="font-bold text-teal-950">
+                  REVIEW DECISION RECORDED — SYNTHETIC DEMO
+                </p>
+                <p className="mt-2 text-sm">
+                  Action: {reviewDecision.action}
+                </p>
+                <p className="text-sm">
+                  Route: {reviewDecision.route}
+                </p>
+                <p className="mt-2 text-sm">
+                  Reason: {reviewDecision.reason}
+                </p>
+                <p className="mt-3 text-xs text-teal-800">
+                  This decision is held only in the current browser session.
+                  It does not certify recycling, worker payment,
+                  or legal compliance.
+                </p>
+              </div>
+            )}
+            <div className="mt-6 border-t border-slate-200 pt-6">
+              <h4 className="text-lg font-bold">
+                06 / Download assessment evidence
+              </h4>
+
+              <p className="mt-2 text-sm text-slate-600">
+                Download the current synthetic assessment with its
+                sensor provenance, ML version, support recommendation,
+                evidence limitations and reviewer decision.
+              </p>
+
+              <p className="mt-3 text-sm font-semibold text-slate-800">
+                Export status:{" "}
+                {reviewDecision ? "REVIEW RECORDED" : "DRAFT — no reviewer decision"}
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => downloadAssessment("json")}
+                  className="rounded-xl bg-teal-800 px-5 py-3 font-semibold text-white hover:bg-teal-900"
+                >
+                  Download JSON
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => downloadAssessment("csv")}
+                  className="rounded-xl border border-teal-800 bg-white px-5 py-3 font-semibold text-teal-900 hover:bg-teal-50"
+                >
+                  Download CSV
+                </button>
+              </div>
+
+              <p className="mt-4 text-xs leading-relaxed text-slate-500">
+                These files contain synthetic demonstration data only.
+                They do not certify recycling, environmental impact,
+                worker payment or legal compliance.
+              </p>
+            </div>
+          </section>
+        )}
 
         <footer className="border-t border-slate-200 py-6 text-xs text-slate-500">
           Evidence Burden Check · Team 8 · Condition 5: Human Consequences
