@@ -162,3 +162,29 @@ Deploy the first functional application slice to Vercel.
 Verify the production URL, record the deployment and
 commit reference, and then implement the synthetic-trained
 ML component with actual inference and tests.
+
+## D011 — First production deployment
+
+Deployment A completed successfully on October 21, 2026.
+
+The production domain returned HTTP 200 to an
+unauthenticated request and served application content.
+
+The baseline corresponds to commit d25bbc1.
+
+The production domain requires no authentication
+for the observed request. No Vercel protection
+configuration changes were necessary.
+
+The deployed application is a working baseline,
+not the completed Week 11 submission.
+
+## Next action
+
+Implement the genuine synthetic-trained ML model.
+
+Use reproducible training data, fixed seeds,
+documented holdout testing, and actual TypeScript
+inference from the exported model artifact.
+
+Preserve deterministic guardrails and human review.
