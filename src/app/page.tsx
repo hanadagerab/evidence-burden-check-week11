@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { safeNumericValue } from "@/lib/numeric-input";
+import { getWorkerGuidance } from "@/lib/worker-guidance";
 import {
   EVIDENCE_DISCLAIMER,
   exportJSON,
@@ -39,6 +40,8 @@ export default function Home() {
   const [reviewRoute, setReviewRoute] =
     useState<SupportRoute>("ASSIST_PAPER");
   const [reviewReason, setReviewReason] = useState("");
+  const [workerLanguage, setWorkerLanguage] =
+    useState<"es" | "en">("es");
   const [reviewErrors, setReviewErrors] = useState<string[]>([]);
   const [reviewDecision, setReviewDecision] = useState<{
     action: ReviewAction;
@@ -750,8 +753,126 @@ export default function Home() {
 
         {assessment && (
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div
+              aria-labelledby="worker-next-step-title"
+              className="mb-8 rounded-2xl border-2 border-teal-700 bg-teal-50 p-5 sm:p-6"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-teal-900">
+                  {workerLanguage === "es"
+                    ? "Para trabajadores — solo demostración"
+                    : "For workers — demonstration only"}
+                </p>
+
+                <div
+                  role="group"
+                  aria-label="Worker guidance language / Idioma"
+                  className="flex gap-2"
+                >
+                  <button
+                    type="button"
+                    lang="es"
+                    aria-pressed={workerLanguage === "es"}
+                    onClick={() => setWorkerLanguage("es")}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+                      workerLanguage === "es"
+                        ? "bg-teal-900 text-white"
+                        : "border border-teal-800 bg-white text-teal-900"
+                    }`}
+                  >
+                    Español
+                  </button>
+                  <button
+                    type="button"
+                    lang="en"
+                    aria-pressed={workerLanguage === "en"}
+                    onClick={() => setWorkerLanguage("en")}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+                      workerLanguage === "en"
+                        ? "bg-teal-900 text-white"
+                        : "border border-teal-800 bg-white text-teal-900"
+                    }`}
+                  >
+                    English
+                  </button>
+                </div>
+              </div>
+
+              <div lang={workerLanguage}>
+                <h3
+                  id="worker-next-step-title"
+                  className="mt-4 text-xl font-bold text-teal-950"
+                >
+                  {workerLanguage === "es"
+                    ? "¿Qué sigue?"
+                    : "What happens next?"}
+                </h3>
+
+                <p className="mt-3 font-semibold text-teal-950">
+                  {getWorkerGuidance(
+                    assessment.support.recommendedRoute,
+                    selected.evidenceFormat,
+                    workerLanguage
+                  ).heading}
+                </p>
+
+                <p className="mt-3 text-sm leading-relaxed text-slate-800">
+                  {getWorkerGuidance(
+                    assessment.support.recommendedRoute,
+                    selected.evidenceFormat,
+                    workerLanguage
+                  ).nextStep}
+                </p>
+
+                <p className="mt-3 text-sm leading-relaxed text-slate-800">
+                  <strong>
+                    {workerLanguage === "es"
+                      ? "Tiempo estimado de revisión:"
+                      : "Estimated review time:"}
+                  </strong>{" "}
+                  {assessment.support.estimatedMinutes}{" "}
+                  {workerLanguage === "es"
+                    ? "minutos en este ejemplo simulado."
+                    : "minutes in this simulated example."}
+                </p>
+
+                <div className="mt-4 rounded-xl bg-white p-4">
+                  <p className="text-sm font-bold text-slate-900">
+                    {workerLanguage === "es"
+                      ? "¿Quién hace el papeleo adicional?"
+                      : "Who does the extra paperwork?"}
+                  </p>
+
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                    {getWorkerGuidance(
+                      assessment.support.recommendedRoute,
+                      selected.evidenceFormat,
+                      workerLanguage
+                    ).workerResponsibility}
+                  </p>
+                </div>
+
+                <p className="mt-4 text-sm leading-relaxed text-slate-800">
+                  <strong>
+                    {workerLanguage === "es"
+                      ? "Lo que todavía no está disponible:"
+                      : "What is not available:"}
+                  </strong>{" "}
+                  {workerLanguage === "es"
+                    ? "Esta demostración no ofrece revisores reales, citas, pagos ni compensación. Los espacios de atención que aparecen son simulados."
+                    : "No real reviewer, appointment, payment, or compensation is provided by this prototype. Any support capacity shown is simulated."}
+                </p>
+
+                <p className="mt-3 text-xs leading-relaxed text-teal-900">
+                  {workerLanguage === "es"
+                    ? "El porcentaje del modelo es una estimación experimental con datos inventados. No evalúa tu honestidad, no determina si tienes derecho a recibir ayuda y no reemplaza la revisión humana."
+                    : "The ML score is an experimental estimate from synthetic data. It does not judge your reliability, determine your eligibility, or override human review."}
+                </p>
+              </div>
+            </div>
+
             <h3 className="text-xl font-bold">
-              05 / Human review and support decision
+              05 / For reviewers only — human review and support decision
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
               Review the evidence and record a human decision.

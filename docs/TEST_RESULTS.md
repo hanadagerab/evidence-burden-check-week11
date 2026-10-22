@@ -144,3 +144,19 @@ Still pending:
 - Full accessibility verification.
 - Deployment B and live production interaction checks.
 - Persona usability test and before/after correction.
+
+## Milestone 5 — Persona-driven accessibility
+
+Synthetic persona simulation identified unclear
+worker responsibilities and inaccessible guidance.
+
+Worker guidance and bilingual support were implemented.
+
+45 automated tests passed; 0 failed.
+TypeScript, ESLint, and production build passed.
+
+Five local browser checks for language selection,
+responsibility separation, and mobile readability
+were reported as passed.
+
+The final bilingual changes await production verification.

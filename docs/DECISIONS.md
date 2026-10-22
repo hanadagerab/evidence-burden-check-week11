@@ -251,3 +251,20 @@ key interactive behaviors, then document the deployment
 against BUG-001.
 
 Complete mobile testing and the synthetic persona cycle.
+
+## D015 — Persona-driven worker guidance
+
+The synthetic persona evaluation found that a support
+recommendation without a clear worker-facing explanation
+could increase administrative uncertainty.
+
+Implemented a plain-language next-step panel and made
+reviewer responsibilities explicit.
+
+A second simulated evaluation found improved understanding
+but identified English-language accessibility as a barrier.
+
+Added Spanish-by-default guidance with an English toggle.
+
+Did not invent a real support service or claim that
+administrative burden was measurably reduced.
